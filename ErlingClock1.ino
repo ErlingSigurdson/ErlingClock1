@@ -3,7 +3,8 @@
 /**
  * Filename: ErlingClock1.ino
  * ----------------------------------------------------------------------------|---------------------------------------|
- * Purpose:  
+ * Purpose:  The main file of the firmware (the Arduino sketch) written for
+ *           the Arduino Pro Mini-based electronic clock I made in 2022.
  * ----------------------------------------------------------------------------|---------------------------------------|
  * Notes:
  */
@@ -45,23 +46,27 @@
 #define DISPLAY_COMMON_PIN SegMap595CommonCathode
 
 
-/*--- Misc ---*/
+/*--- Timing ---*/
+
+// In milliseconds.
+#define AUTONOMOUS_COUNTER_INTERVAL 1000
+#define I2C_READ_INTERVAL           10000
+
+#define MAX_COUNT_MINUTES 60
+#define MAX_COUNT_SECONDS 60
+
+
+/*--- Buttons ---*/
 
 #define BTN_1_PIN 10
 #define BTN_2_PIN 12
 #define BTN_3_PIN 11
 
-#define MAX_COUNT_MINUTES 60
-#define MAX_COUNT_SECONDS 60
 
-// Comment out or delete to suppress the output of current timer values via UART.
-#define SERIAL_OUTPUT
+/*--- UART ---*/
 
-// Set appropriately based on the baud rate you use.
+#define SERIAL_OUTPUT  // Comment out or delete to suppress the output of current timer values via UART.
 #define BAUD_RATE 115200
-
-// Output interval ("once every X milliseconds").
-#define INTERVAL 1000
 
 
 /****************** DATA TYPES ******************/
@@ -114,7 +119,8 @@ namespace mp_safe_io {
     void read_time(DS3231& RTC, current_time_t& CurrentTime);
 
     // UART interface.
-    void serial_print(const char* msg, bool add_newline);
+    void serial_print(const char* msg);
+    void serial_print(int8_t* val);
 }
 
 
@@ -125,6 +131,8 @@ void time_setting_mode(bool& time_setting_mode_flag, DS3231& RTC, current_time_t
 
 
 /******************* FUNCTIONS ******************/
+
+/*--- Basic functions ---*/
 
 void setup()
 {
@@ -175,7 +183,7 @@ void setup()
 
 void loop()
 {
-    static current_time_t CurrentTime = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    static current_time_t CurrentTime = {};  // Initialize with all-zero values.
 
 
     /*--- Counter and value update trigger ---*/
@@ -259,7 +267,10 @@ void loop()
     }
 }
 
-void get_time(DS3231& RTC, current_time_t& CurrentTime)
+
+/*--- Extra functions ---*/
+
+void mp_safe_io::copy_time(DS3231& RTC, current_time_t& CurrentTime)
 {
     read_time(RTC, CurrentTime);
     decompose_time(CurrentTime);
@@ -267,13 +278,8 @@ void get_time(DS3231& RTC, current_time_t& CurrentTime)
 
 void read_time(DS3231& RTC, current_time_t& CurrentTime)
 {
-    //DateTime RTCCurrentTime = RTClib::now();
-    //CurrentTime.raw_hours   = RTCCurrentTime.hour();
-    //CurrentTime.raw_minutes = RTCCurrentTime.minute();
-    //CurrentTime.raw_seconds = RTCCurrentTime.second();
-
-    static bool h12_flag = false;
-    static bool pm_time_flag = false;
+    constexpr bool h12_flag = false;
+    constexpt bool pm_time_flag = false;
 
     CurrentTime.raw_hours   = RTC.getHour(h12_flag, pm_time_flag);
     Drv7Seg.output_all();
