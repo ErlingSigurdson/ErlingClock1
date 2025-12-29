@@ -326,10 +326,12 @@ void mp_safe_io::serial_print(size_t val)
     Serial.print(val);
 }
 
+#if defined(UINT32_MAX) && defined(SIZE_MAX) && (UINT32_MAX > SIZE_MAX)
 void mp_safe_io::serial_print(uint32_t val)
 {
     serial_print(static_cast<size_t>(val));
 }
+#endif
 
 void decompose_rtc_time(current_time_t& CurrentTime)
 {
