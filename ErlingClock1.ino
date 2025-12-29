@@ -40,6 +40,9 @@
 #define POS_3_PIN 7
 #define POS_4_PIN 6
 
+/* Not strictly necessary, but it's a guard against ripple caused by
+ * gaps in multiplexing that occur due to long-ish I/O.
+ */
 #define ANTI_GHOSTING_RETENTION_DURATION 1500
 
 
@@ -58,7 +61,7 @@
 
 /*--- Counters and timing ---*/
 
-#define INTERVAL                     1000  // In milliseconds.
+#define BASIC_INTERVAL               1000  // In milliseconds.
 #define I2C_READ_INTERVAL_MULTIPLIER 10
 
 #define MAX_COUNT_HOURS   24
@@ -68,7 +71,7 @@
 
 /*--- UART ---*/
 
-#define SERIAL_OUTPUT_ENABLED  // Comment out or delete to suppress the output of current timer values via UART.
+#define SERIAL_OUTPUT_ENABLED  // Comment out or delete to suppress the UART output.
 #define BAUD_RATE 115200
 
 
@@ -100,13 +103,6 @@ struct current_time_t {
 };
 
 
-/*************** GLOBAL VARIABLES ***************/
-
-uButton btn_1(BTN_1_PIN);
-uButton btn_2(BTN_2_PIN);
-uButton btn_3(BTN_3_PIN);
-
-
 /************** FUNCTION PROTOTYPES *************/
 
 /*--- Multiplexing-friendly I/O wrappers ---*/
@@ -119,14 +115,19 @@ namespace mp_safe_io {
     // UART.
     void serial_print(const char* msg);
     void serial_print(size_t val);
+
+    #if defined(UINT32_MAX) && defined(SIZE_MAX) && (UINT32_MAX > SIZE_MAX)
     void serial_print(uint32_t val);
+    #endif
 }
 
 
 /*--- Misc ---*/
 
 void decompose_rtc_time(current_time_t& CurrentTime);
-void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime, bool& time_setting_mode_flag);
+void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime,
+                       uButton& btn_1, uButton& btn_2, uButton& btn_3,
+                       bool& time_setting_mode_flag);
 
 
 /******************* FUNCTIONS ******************/
@@ -152,7 +153,7 @@ void setup()
         while(true) {
             Serial.print("Error: mapping failed, error code ");
             Serial.println(mapping_status);
-            delay(INTERVAL);
+            delay(BASIC_INTERVAL);
         }
     }
 
@@ -171,7 +172,7 @@ void setup()
         while(true) {
             Serial.print("Error: driver configuration failed, error code ");
             Serial.println(drv_config_status);
-            delay(INTERVAL);
+            delay(BASIC_INTERVAL);
         }
     }
 
@@ -182,8 +183,12 @@ void setup()
 
 void loop()
 {
-    DS3231 RTC;
+    static DS3231 RTC;
     static current_time_t CurrentTime = {};  // Initialize with all-zero values.
+
+    static uButton btn_1(BTN_1_PIN);
+    static uButton btn_2(BTN_2_PIN);
+    static uButton btn_3(BTN_3_PIN);
 
 
     /*--- Counter and value update trigger ---*/
@@ -208,7 +213,7 @@ void loop()
         CurrentTime.raw_hours = 0;
     }
 
-    // Value update trigger.
+    // Update triggers.
     static bool update_output_due = true;
     static bool update_i2c_due = true;
 
@@ -227,6 +232,14 @@ void loop()
         uint8_t seg_byte_pos_2 = SegMap595.get_mapped_byte(CurrentTime.hours.ones);
         uint8_t seg_byte_pos_3 = SegMap595.get_mapped_byte(CurrentTime.minutes.tens);
         uint8_t seg_byte_pos_4 = SegMap595.get_mapped_byte(CurrentTime.minutes.ones);
+
+        // Handy for debugging.
+        /*
+        uint8_t seg_byte_pos_1 = SegMap595.get_mapped_byte(CurrentTime.minutes.tens);
+        uint8_t seg_byte_pos_2 = SegMap595.get_mapped_byte(CurrentTime.minutes.ones);
+        uint8_t seg_byte_pos_3 = SegMap595.get_mapped_byte(CurrentTime.seconds.tens);
+        uint8_t seg_byte_pos_4 = SegMap595.get_mapped_byte(CurrentTime.seconds.ones);
+        */
 
         // Dot-segment blink.
         if (CurrentTime.raw_seconds % 2) {
@@ -254,13 +267,15 @@ void loop()
         update_output_due = false;
     }
 
-    // Basic output call spot (it's not the only one).
+    /* Basic output call spot (it's not the only one, output is also commenced
+     * before and after every UART and I2C I/O operation).
+     */
     Drv7Seg.output_all();
 
 
     /*--- Counter and value update trigger, continued ---*/
 
-    if (current_millis - previous_millis >= INTERVAL) {
+    if (current_millis - previous_millis >= BASIC_INTERVAL) {
         CurrentTime.raw_seconds++;
         update_output_due = true;
         ++updates;
@@ -284,7 +299,9 @@ void loop()
     }
 
     if (time_setting_mode_flag) {
-        time_setting_mode(RTC, CurrentTime, time_setting_mode_flag);
+        time_setting_mode(RTC, CurrentTime,
+                          btn_1, btn_2, btn_3,
+                          time_setting_mode_flag);
     }
 }
 
@@ -341,7 +358,9 @@ void decompose_rtc_time(current_time_t& CurrentTime)
     CurrentTime.seconds.ones = CurrentTime.raw_seconds % 10;
 }
 
-void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime, bool& time_setting_mode_flag)
+void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime,
+                       uButton& btn_1, uButton& btn_2, uButton& btn_3,
+                       bool& time_setting_mode_flag)
 {
     CurrentTime = {};  // Assign all-zero values.
     bool update_glyphs_due = true;
@@ -362,6 +381,8 @@ void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime, bool& time_sett
         if (btn_2.tick()) {
             if (btn_2.press() || btn_2.step()) {
                 CurrentTime.raw_hours++;
+                // Handy for debugging.
+                //CurrentTime.raw_minutes++;
                 update_glyphs_due = true;
             }
         }
@@ -369,9 +390,18 @@ void time_setting_mode(DS3231& RTC, current_time_t& CurrentTime, bool& time_sett
         if (btn_3.tick()) {
             if (btn_3.press() || btn_3.step()) {
                 CurrentTime.raw_minutes++;
+                // Handy for debugging.
+                //CurrentTime.raw_seconds++;
                 update_glyphs_due = true;
             }
         }    
+
+        // Handy for debugging.
+        /*
+        if (CurrentTime.raw_seconds >= MAX_COUNT_SECONDS) {
+            CurrentTime.raw_seconds = 0;
+        }
+        */
 
         if (CurrentTime.raw_minutes >= MAX_COUNT_MINUTES) {
             CurrentTime.raw_minutes = 0;
