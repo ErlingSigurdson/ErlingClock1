@@ -7,9 +7,9 @@ working, usable and maintainable, I wrote this updated firmware just to know wha
 
 ![1.png](extras/images/1.png)
 
-![2.png](extras/images/1.png)
+![2.png](extras/images/2.png)
 
-![3.jpg](extras/images/1.jpg)
+![3.jpg](extras/images/3.jpg)
 
 ## Schematic
 
