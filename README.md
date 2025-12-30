@@ -8,7 +8,7 @@ I had made this clock and written the initial functional sketch for the ATmega32
 in 2022, and it works okay, but in order to improve the device's maintainability I wrote the updated firmware and
 the docs. If you like this project for some reason, feel free to use the code and the docs as you please.
 
-This sketch:
+The sketch:
 * Drives a multiplexed 7-segment display using a single 74HC595 shift register IC and
 a set of 4 GPIO-driven transistors.
 * Interfaces with a DS3231 RTC IC (breakout board) to track time.
