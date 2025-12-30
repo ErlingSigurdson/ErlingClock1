@@ -1,8 +1,10 @@
 # Overview
 
+A firmware (an Arduino sketch) written for the Arduino Pro Mini-based electronic clock I made in 2022.
+
 ## Concept
 
-I made this clock in 2022 and wrote a rookie sketch that worked somehow. Since I'd like to keep this device
+I made this clock and wrote a rookie sketch that worked somehow. Since I'd like to keep this device
 working, usable and maintainable, I wrote this updated firmware just to know what my clock is running.
 If you like the code for some reason, feel free to use it as you please.
 
