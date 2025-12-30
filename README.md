@@ -4,9 +4,14 @@ A firmware (an Arduino sketch) written for the Arduino Pro Mini-based electronic
 
 ## Concept
 
-I made this clock and wrote a rookie sketch that worked somehow. Since I'd like to keep this device
-working, usable and maintainable, I wrote this updated firmware just to know what my clock is running.
-If you like the code for some reason, feel free to use it as you please.
+I'd made this clock and written a functional rookie sketch in 2022, and it works okay, but in order to improve
+the device's maintainability I wrote these updated firmware and docs. If you like the code for some reason,
+feel free to use it as you please.
+
+This sketch:
+* Drives a multiplexed 7-segment display using a single 74HC595 shift register IC and
+a set of 4 GPIO-driven transistors.
+* Interfaces with a DS3231 RTC IC (breakout board) to track time.
 
 ![1.png](extras/images/1.png)
 
@@ -23,7 +28,7 @@ But hey, it works.
 
 ## Dependencies
 
-See the sketch file includes, see the links below.
+See the sketch file include directives, see the links below.
 
 ## Links
 
@@ -54,7 +59,9 @@ See the sketch file includes, see the links below.
 
 ### Miscellaneous
 
-* An [article](https://vk.ru/@-214685134-elektronnye-chasy-na-arduino-i-module-ds3231ds1307?subtype=primary) I wrote on this project in 2022. The pinned sketch is deprecated, and overall writing doesn't satisfy me anymore, but I don't care enough to do something about this one.
+* An [article](https://vk.ru/@-214685134-elektronnye-chasy-na-arduino-i-module-ds3231ds1307?subtype=primary)
+I wrote on this project in 2022. The pinned sketch is legacy (consider it to be version 1.0.0, deprecated), and
+overall writing doesn't satisfy me anymore, but I don't care enough to do something about this one.
 
 ## License
 
