@@ -4,9 +4,9 @@ A firmware (an Arduino sketch) written for the Arduino Pro Mini-based electronic
 
 ## Concept
 
-I had made this clock and written an initial functional sketch for an ATmega328P-based Arduino Pro Mini knockoff board
+I had made this clock and written the initial functional sketch for the ATmega328P-based Arduino Pro Mini knockoff board
 in 2022, and it works okay, but in order to improve the device's maintainability I wrote the updated firmware and
-the docs. If you like the code for some reason, feel free to use it as you please.
+the docs. If you like this project for some reason, feel free to use the code and the docs as you please.
 
 This sketch:
 * Drives a multiplexed 7-segment display using a single 74HC595 shift register IC and
