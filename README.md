@@ -4,6 +4,7 @@
 
 I made this clock in 2022 and wrote a rookie sketch that worked somehow. Since I'd like to keep this device
 working, usable and maintainable, I wrote this updated firmware just to know what my clock is running.
+If you like it for some reason, feel free to use it as you please.
 
 ![1.png](extras/images/1.png)
 
@@ -52,3 +53,7 @@ See the sketch file includes, see the links below.
 ### Miscellaneous
 
 * An [article](https://vk.ru/@-214685134-elektronnye-chasy-na-arduino-i-module-ds3231ds1307?subtype=primary) I wrote on this project in 2022. The pinned sketch is deprecated, and overall writing doesn't satisfy me anymore, but I don't care enough to do something about this one.
+
+## License
+
+This stuff is licensed under the **MIT License** (see `LICENSE` [here](LICENSE)).
