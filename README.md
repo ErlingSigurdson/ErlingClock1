@@ -4,7 +4,7 @@
 
 I made this clock in 2022 and wrote a rookie sketch that worked somehow. Since I'd like to keep this device
 working, usable and maintainable, I wrote this updated firmware just to know what my clock is running.
-If you like it for some reason, feel free to use it as you please.
+If you like the code for some reason, feel free to use it as you please.
 
 ![1.png](extras/images/1.png)
 
