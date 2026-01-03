@@ -399,7 +399,7 @@ void time_setting_mode(GyverDS3231Min& RTC, current_time_t& CurrentTime,
     CurrentTime = {};  // Assign all-zero values.
     bool update_output_due = true;
 
-    while (time_setting_mode_flag) {
+    while (true) {
         Drv7Seg.output_all();
 
 
@@ -409,6 +409,7 @@ void time_setting_mode(GyverDS3231Min& RTC, current_time_t& CurrentTime,
             if (btn_1.press()) {
                 mp_safe_io::write_rtc_time(RTC, CurrentTime);
                 time_setting_mode_flag = false;
+                break;
             }
         }
 
