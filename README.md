@@ -15,9 +15,9 @@ a set of 4 GPIO-driven transistors.
 
 ![1.png](extras/images/1.png)
 
-![2.jpg](extras/images/2.jpg)
+![2.png](extras/images/2.png)
 
-![3.jpg](extras/images/3.jpg)
+![3.png](extras/images/3.png)
 
 ## Schematic
 
@@ -25,6 +25,17 @@ Far from perfect: base drive resistors should have higher values, pull-down resi
 But hey, it works. 
 
 ![circuit_diagram_(schematic).png](extras/images/circuit_diagram_(schematic).png)
+
+### Hint: charging circuit
+
+It is a common knowledge that most cheap DS3231 breakout boards have a backup battery charging circuit that is, first,
+designed for rechargeable batteries (like ML2032), and second, designed rather poorly. Since I use a non-rechargeable
+CR2032 battery, I followed a common advice and removed the diode and the resistor that constitute the said circuit
+(removing any of them would be enough, but I removed both anyway).
+
+![4.png](extras/images/4.png)
+
+![5.png](extras/images/5.png)
 
 ## Dependencies
 
