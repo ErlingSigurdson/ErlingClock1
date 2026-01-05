@@ -127,13 +127,17 @@ namespace mp_safe_io {
 }
 
 
-/*--- Misc ---*/
+/*--- Modes ---*/
 
-void time_setting_mode(GyverDS3231Min& RTC, CurrentTime& current_time,
-                       uButton& btn_1, uButton& btn_2, uButton& btn_3,
-                       bool& dark_mode_flag,
-                       bool& time_setting_mode_flag
-                      );
+namespace modes {
+    namespace time_setting {
+        void loop(GyverDS3231Min& RTC, CurrentTime& current_time,
+                  uButton& btn_1, uButton& btn_2, uButton& btn_3,
+                  bool& dark_mode_flag,
+                  bool& time_setting_mode_flag
+                 );
+    }
+}
 
 
 /******************* FUNCTIONS ******************/
@@ -330,10 +334,11 @@ void loop()
     }
 
     if (time_setting_mode_flag) {
-        time_setting_mode(RTC, current_time,
-                          btn_1, btn_2, btn_3,
-                          dark_mode_flag,
-                          time_setting_mode_flag);
+        modes::time_setting::loop(RTC, current_time,
+                                  btn_1, btn_2, btn_3,
+                                  dark_mode_flag,
+                                  time_setting_mode_flag
+                                 );
     }
 
 
@@ -421,11 +426,11 @@ void mp_safe_io::serial_print(uint32_t val)
 }
 #endif
 
-void time_setting_mode(GyverDS3231Min& RTC, CurrentTime& current_time,
-                       uButton& btn_1, uButton& btn_2, uButton& btn_3,
-                       bool& dark_mode_flag,
-                       bool& time_setting_mode_flag
-                      )
+void modes::time_setting::loop(GyverDS3231Min& RTC, CurrentTime& current_time,
+                               uButton& btn_1, uButton& btn_2, uButton& btn_3,
+                               bool& dark_mode_flag,
+                               bool& time_setting_mode_flag
+                              )
 {
     current_time = {};  // Assign all-zero values.
     bool update_output_due = true;
