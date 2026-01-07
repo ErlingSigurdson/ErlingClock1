@@ -130,8 +130,8 @@ struct CurrentTime {
 
 namespace mp_safe_io {
     // I2C.
-    void read_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time);
-    void write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time);
+    void read_rtc_time(GyverDS3231Min& GyverRTC, CurrentTime& current_time);
+    void write_rtc_time(GyverDS3231Min& GyverRTC, CurrentTime& current_time);
 
     // UART.
     inline void serial_print(const char* msg);
@@ -147,7 +147,7 @@ namespace mp_safe_io {
 
 namespace modes {
     namespace time_setting {
-        void loop(GyverDS3231Min& RTC, CurrentTime& current_time,
+        void loop(GyverDS3231Min& GyverRTC, CurrentTime& current_time,
                   uButton& btn_1, uButton& btn_2, uButton& btn_3,
                   bool& dark_mode_flag,
                   bool& time_setting_mode_flag
@@ -215,11 +215,11 @@ void loop()
 {
     /*--- Interface initialization, continued ---*/
 
-    static GyverDS3231Min RTC;
+    static GyverDS3231Min GyverRTC;
     static bool interface_begin_flag = false;
     if (!interface_begin_flag) {
         Wire.begin();
-        RTC.begin();
+        GyverRTC.begin();
         interface_begin_flag = true;
     }
 
@@ -256,7 +256,7 @@ void loop()
     /*--- Output values update and optional UART output ---*/
 
     if (update_i2c_due) {
-        mp_safe_io::read_rtc_time(RTC, current_time);
+        mp_safe_io::read_rtc_time(GyverRTC, current_time);
 
         #ifdef SERIAL_OUTPUT_ENABLED
         mp_safe_io::serial_print("ErlingClock1 sketch version: " STRINGIFY(VERSION) "\r\n");
@@ -349,7 +349,7 @@ void loop()
     }
 
     if (time_setting_mode_flag) {
-        modes::time_setting::loop(RTC, current_time,
+        modes::time_setting::loop(GyverRTC, current_time,
                                   btn_1, btn_2, btn_3,
                                   dark_mode_flag,
                                   time_setting_mode_flag
@@ -399,10 +399,10 @@ void CurrentTime::decompose_by_digits()
     seconds.ones = raw.seconds % 10;
 }
 
-void mp_safe_io::read_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
+void mp_safe_io::read_rtc_time(GyverDS3231Min& GyverRTC, CurrentTime& current_time)
 {
     Drv7Seg.output_all();
-    Datime dt = RTC.getTime();
+    Datime dt = GyverRTC.getTime();
     Drv7Seg.output_all();
 
     current_time.raw.hours   = static_cast<uint32_t>(dt.hour);
@@ -410,7 +410,7 @@ void mp_safe_io::read_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
     current_time.raw.seconds = static_cast<uint32_t>(dt.second);
 }
 
-void mp_safe_io::write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
+void mp_safe_io::write_rtc_time(GyverDS3231Min& GyverRTC, CurrentTime& current_time)
 {
     Datime dt(2001, 1, 1,  /* Arbitrary placeholders.
                             * Date must NOT be 01.01.2000, because for some reason setTime() is programmed to
@@ -422,13 +422,13 @@ void mp_safe_io::write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
              );
 
     Drv7Seg.output_all();
-    RTC.setTime(dt);
+    GyverRTC.setTime(dt);
     Drv7Seg.output_all();
 
     // Another variant, pretty much equivalent.
     /*
     Drv7Seg.output_all();
-    RTC.setTime(2001, 1, 1,
+    GyverRTC.setTime(2001, 1, 1,
                 static_cast<uint8_t>(current_time.raw.hours),
                 static_cast<uint8_t>(current_time.raw.minutes),
                 static_cast<uint8_t>(current_time.raw.seconds)
@@ -471,7 +471,7 @@ inline void mp_safe_io::serial_print(uint32_t val)
 }
 #endif
 
-void modes::time_setting::loop(GyverDS3231Min& RTC, CurrentTime& current_time,
+void modes::time_setting::loop(GyverDS3231Min& GyverRTC, CurrentTime& current_time,
                                uButton& btn_1, uButton& btn_2, uButton& btn_3,
                                bool& dark_mode_flag,
                                bool& time_setting_mode_flag
@@ -488,7 +488,7 @@ void modes::time_setting::loop(GyverDS3231Min& RTC, CurrentTime& current_time,
 
         if (btn_1.tick()) {
             if (btn_1.press()) {
-                mp_safe_io::write_rtc_time(RTC, current_time);
+                mp_safe_io::write_rtc_time(GyverRTC, current_time);
                 dark_mode_flag = false;
                 time_setting_mode_flag = false;
                 break;
