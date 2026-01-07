@@ -64,7 +64,7 @@
 
 /*--- Timing and counters ---*/
 
-#define BASIC_INTERVAL               1000  // In milliseconds.
+#define BASIC_INTERVAL               1000UL  // In milliseconds.
 #define I2C_READ_INTERVAL_MULTIPLIER 10
 
 
@@ -319,11 +319,13 @@ void loop()
 
     /*--- Counter and value update trigger, continued ---*/
 
-    if (current_millis - previous_millis >= BASIC_INTERVAL) {
-        current_time.raw.seconds++;
+    uint32_t elapsed = current_millis - previous_millis;
+    if (elapsed >= BASIC_INTERVAL) {
+        uint32_t increments = elapsed / BASIC_INTERVAL;
+        current_time.raw.seconds += increments;
         update_output_due = true;
-        ++updates;
-        previous_millis = current_millis;
+        updates += increments;
+        previous_millis += increments * BASIC_INTERVAL;
     }
 
     if (updates >= I2C_READ_INTERVAL_MULTIPLIER) {
