@@ -439,16 +439,20 @@ void mp_safe_io::write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
 
 void mp_safe_io::serial_print(const char *msg)
 {
-    Drv7Seg.output_all();
-    Serial.print(msg);
-    Drv7Seg.output_all();
+    #ifdef SERIAL_OUTPUT_ENABLED
+        Drv7Seg.output_all();
+        Serial.print(msg);
+        Drv7Seg.output_all();
+    #endif
 }
 
 void mp_safe_io::serial_print(size_t val)
 {
-    Drv7Seg.output_all();
-    Serial.print(val);
-    Drv7Seg.output_all();
+    #ifdef SERIAL_OUTPUT_ENABLED
+        Drv7Seg.output_all();
+        Serial.print(val);
+        Drv7Seg.output_all();
+    #endif
 }
 
 // This overload can theoretically truncate the argument value, but given the realistic time values, it's a non-issue.
