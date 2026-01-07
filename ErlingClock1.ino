@@ -134,11 +134,11 @@ namespace mp_safe_io {
     void write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time);
 
     // UART.
-    void serial_print(const char* msg);
-    void serial_print(size_t val);
+    inline void serial_print(const char* msg);
+    inline void serial_print(size_t val);
 
     #if defined(UINT32_MAX) && defined(SIZE_MAX) && (UINT32_MAX > SIZE_MAX)
-    void serial_print(uint32_t val);
+    inline void serial_print(uint32_t val);
     #endif
 }
 
@@ -437,29 +437,37 @@ void mp_safe_io::write_rtc_time(GyverDS3231Min& RTC, CurrentTime& current_time)
     */
 }
 
-void mp_safe_io::serial_print(const char *msg)
+inline void mp_safe_io::serial_print(const char *msg)
 {
     #ifdef SERIAL_OUTPUT_ENABLED
         Drv7Seg.output_all();
         Serial.print(msg);
         Drv7Seg.output_all();
+    #else
+        static_cast<void>(msg);
     #endif
 }
 
-void mp_safe_io::serial_print(size_t val)
+inline void mp_safe_io::serial_print(size_t val)
 {
     #ifdef SERIAL_OUTPUT_ENABLED
         Drv7Seg.output_all();
         Serial.print(val);
         Drv7Seg.output_all();
+    #else
+        static_cast<void>(val);
     #endif
 }
 
 // This overload can theoretically truncate the argument value, but given the realistic time values, it's a non-issue.
 #if defined(UINT32_MAX) && defined(SIZE_MAX) && (UINT32_MAX > SIZE_MAX)
-void mp_safe_io::serial_print(uint32_t val)
+inline void mp_safe_io::serial_print(uint32_t val)
 {
-    serial_print(static_cast<size_t>(val));
+    #ifdef SERIAL_OUTPUT_ENABLED
+        serial_print(static_cast<size_t>(val));
+    #else
+        static_cast<void>(val);
+    #endif
 }
 #endif
 
