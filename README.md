@@ -22,7 +22,7 @@ a set of 4 GPIO-driven transistors.
 ## Schematic
 
 Far from perfect: base drive resistors should have higher values, pull-down resistors should be added to bases, etc.
-But hey, it works. 
+But hey, it works.
 
 ![circuit_diagram_(schematic).png](extras/images/circuit_diagram_(schematic).png)
 
