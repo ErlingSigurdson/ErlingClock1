@@ -34,7 +34,6 @@ CR2032 battery, I followed a common advice and removed the diode and the resisto
 (removing any of them would be enough, but I removed both anyway). I suspect that it improves battery health and makes
 RTC time update on backup power more reliable.
 
-
 ![4.png](extras/images/4.png)
 
 ![5.png](extras/images/5.png)
