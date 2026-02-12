@@ -36,7 +36,7 @@
 
 #define DATA_PIN  4
 #define LATCH_PIN 2
-#define CLOCK_PIN 3
+#define CLOCK_PIN TODO
 
 #define POS_1_PIN 9
 #define POS_2_PIN 8
@@ -74,6 +74,14 @@
 
 #define SERIAL_OUTPUT_ENABLED  // Comment out to suppress the UART output.
 #define BAUD_RATE 115200
+
+
+/*--- Brightness control ---*/
+
+#define BRIGHTNESS_CTRL_PIN 3
+
+#define BRIGHTNESS_CTRL_MAX_VAL_PERCENT 100
+#define BRIGHTNESS_CTRL_MAX_VAL         255
 
 
 /*--- Misc ---*/
@@ -125,6 +133,22 @@ struct CurrentTime {
         static constexpr uint32_t _max_count_seconds = 60;
 };
 
+enum BrightnessLvl : uint8_t {  // Not 'enum class' to simplify integer arithmetics.
+    Lvl6 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT,
+    Lvl5 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 2,
+    Lvl4 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 4,
+    Lvl3 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 10,
+    Lvl2 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 20,
+    Lvl1 = BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 50
+};
+
+constexpr BrightnessLvl BrightnessLvl6 = BrightnessLvl::Lvl6;
+constexpr BrightnessLvl BrightnessLvl5 = BrightnessLvl::Lvl5;
+constexpr BrightnessLvl BrightnessLvl4 = BrightnessLvl::Lvl4;
+constexpr BrightnessLvl BrightnessLvl3 = BrightnessLvl::Lvl3;
+constexpr BrightnessLvl BrightnessLvl2 = BrightnessLvl::Lvl2;
+constexpr BrightnessLvl BrightnessLvl1 = BrightnessLvl::Lvl1;
+
 
 /************** FUNCTION PROTOTYPES *************/
 
@@ -158,6 +182,17 @@ namespace modes {
     }
 
     // More modes may be added later.
+}
+
+
+/*--- Brightness control ---*/
+
+namespace brightness_ctrl {
+    void set_pwm_freq_low_level();
+
+    namespace percent {
+        void set(uint8_t val_percent);
+    }
 }
 
 
@@ -239,6 +274,18 @@ void loop()
     static bool dark_mode_flag = false;
     constexpr uint8_t blank = 0b00000000;
     static uint8_t only_dot_on = SegMap595.turn_on_dot(blank);  // Indicate that clock is on.
+
+
+    /*--- Brightness control ---*/
+
+    static uint8_t brightness_ctrl_current_lvl = static_cast<uint8_t>(BrightnessLvl6);
+    static bool brightness_ctrl_init_flag = false;
+    if (!brightness_ctrl_init_flag) {
+        brightness_ctrl::set_pwm_freq_low_level();
+        pinMode(BRIGHTNESS_CTRL_PIN, OUTPUT);
+        brightness_ctrl::percent::set(brightness_ctrl_current_lvl);
+        brightness_ctrl_init_flag = true;
+    }
 
 
     /*--- Counters and update triggers ---*/
@@ -360,6 +407,45 @@ void loop()
                                  );
         current_millis = millis();
         previous_millis = current_millis;
+    }
+
+
+    /*--- Brightness control, continued ---*/
+
+    if (btn_2.tick()) {
+        if (btn_2.press()) {
+            switch (brightness_ctrl_current_lvl) {
+                case BrightnessLvl6:
+                    brightness_ctrl_current_lvl = BrightnessLvl5;
+                    break;
+
+                case BrightnessLvl5:
+                    brightness_ctrl_current_lvl = BrightnessLvl4;
+                    break;
+
+                case BrightnessLvl4:
+                    brightness_ctrl_current_lvl = BrightnessLvl3;
+                    break;
+
+                case BrightnessLvl3:
+                    brightness_ctrl_current_lvl = BrightnessLvl2;
+                    break;
+
+                case BrightnessLvl2:
+                    brightness_ctrl_current_lvl = BrightnessLvl1;
+                    break;
+
+                case BrightnessLvl1:
+                    brightness_ctrl_current_lvl = BrightnessLvl6;
+                    break;
+
+                default:
+                    brightness_ctrl_current_lvl = BrightnessLvl6;
+                    break;
+            }
+
+            brightness_ctrl::percent::set(brightness_ctrl_current_lvl);
+        }
     }
 
 
@@ -557,4 +643,37 @@ void modes::time_setting::loop(GyverDS3231Min& GyverRTC, CurrentTime& current_ti
             _update_output_due = false;
         }
     }
+}
+
+void brightness_ctrl::percent::set(uint8_t val_percent)
+{
+    if (val_percent > BRIGHTNESS_CTRL_MAX_VAL_PERCENT) {
+        val_percent = BRIGHTNESS_CTRL_MAX_VAL_PERCENT;
+    }
+
+    // Invertion is necessary because 595's output is enabled when its OE pin is pulled to LOW.
+    uint8_t val_percent_inverted = BRIGHTNESS_CTRL_MAX_VAL_PERCENT - val_percent;
+    uint8_t val = (val_percent_inverted * BRIGHTNESS_CTRL_MAX_VAL + (BRIGHTNESS_CTRL_MAX_VAL_PERCENT / 2)) /
+                  BRIGHTNESS_CTRL_MAX_VAL_PERCENT;
+    OCR2B = val;
+
+    Serial.print("Brightness set to ");
+    Serial.print(val_percent);
+    Serial.println("%");
+}
+
+void brightness_ctrl::set_pwm_freq_low_level()  // Set PWM frequency to ~7.8 kHz.
+{
+    // Stop Timer2.
+    TCCR2A = 0;
+    TCCR2B = 0;
+
+    // Fast PWM, 8-bit: WGM22:0 = 0b011 (modes 3).
+    TCCR2A |= (1 << WGM21) | (1 << WGM20);
+
+    // Non-inverting mode on OC2B (pin 3): COM2B1 = 1, COM2B0 = 0.
+    TCCR2A |= (1 << COM2B1);
+
+    // Prescaler = 8, CS22:0 = 0b010.
+    TCCR2B |= (1 << CS21);
 }
