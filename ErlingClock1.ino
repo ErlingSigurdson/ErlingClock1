@@ -36,7 +36,7 @@
 
 #define DATA_PIN  4
 #define LATCH_PIN 2
-#define CLOCK_PIN TODO
+#define CLOCK_PIN 5
 
 #define POS_1_PIN 9
 #define POS_2_PIN 8
