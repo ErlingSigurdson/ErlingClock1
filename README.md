@@ -24,6 +24,10 @@ a set of 4 GPIO-driven transistors.
 Far from perfect: base drive resistors should have higher values, pull-down resistors should be added to bases, etc.
 But hey, it works.
 
+A later modification was made: the project now also has an additional connection between the 595’s OE (output enable)
+pin and one of the GPIO pins, and the OE pin is no more shorted to GND, which allows for brightness control via PWM.
+It's all reflected in the sketch.
+
 ![circuit_diagram_(schematic).png](extras/images/circuit_diagram_(schematic).png)
 
 ### Hint: charging circuit removal
